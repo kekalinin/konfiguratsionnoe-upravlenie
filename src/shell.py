@@ -3,29 +3,48 @@
 import getpass
 import socket
 from parser import CommandParser
-from commands import LsCommand, CdCommand, ExitCommand
+from commands import (
+    LsCommand, CdCommand, ExitCommand,
+    ConfDumpCommand,
+)
+from logger import NullLogger
 
 
 class Shell:
     """Логика эмулятора оболочки."""
 
-    def __init__(self):
-        """Инициализировать оболочку парсером и командами."""
+    def __init__(self, config=None):
+        """Инициализировать оболочку.
+
+        Args:
+            config: объект EmulatorConfig или None
+        """
         self.parser = CommandParser()
         self.commands = {
             'ls': LsCommand(),
             'cd': CdCommand(),
             'exit': ExitCommand(),
+            'conf-dump': ConfDumpCommand(),
         }
         self.is_running = True
         self.username = getpass.getuser()
         self.hostname = socket.gethostname()
+        self.config = config
+        self.logger = NullLogger()
+
+    def set_logger(self, logger):
+        """Установить логгер.
+
+        Args:
+            logger: объект логгера
+        """
+        self.logger = logger
 
     def get_prompt(self):
         """Получить строку приглашения к вводу.
 
         Returns:
-            Строка приглашения с именем пользователя и хостом
+            Строка приглашения
         """
         return f"{self.username}@{self.hostname}:~$ "
 
@@ -33,7 +52,7 @@ class Shell:
         """Получить строку заголовка окна.
 
         Returns:
-            Заголовок окна с именем пользователя и хостом
+            Заголовок окна
         """
         return f"Эмулятор-[{self.username}@{self.hostname}]"
 
@@ -44,7 +63,7 @@ class Shell:
             line: введённая командная строка
 
         Returns:
-            Строка с результатом выполнения команды
+            Строка с результатом выполнения
         """
         args = self.parser.parse(line)
         if not args:
@@ -54,9 +73,18 @@ class Shell:
         cmd_args = args[1:]
 
         if cmd_name not in self.commands:
-            return f"Неизвестная команда: {cmd_name}"
+            error_msg = (
+                f"Неизвестная команда: {cmd_name}"
+            )
+            self.logger.log_command(
+                cmd_name, cmd_args, error=error_msg
+            )
+            return error_msg
 
-        return self.commands[cmd_name].execute(cmd_args, self)
+        self.logger.log_command(cmd_name, cmd_args)
+        return self.commands[cmd_name].execute(
+            cmd_args, self
+        )
 
     def close(self):
         """Закрыть оболочку."""

@@ -64,3 +64,22 @@ class ExitCommand(Command):
         """
         shell.close()
         return ""
+
+
+class ConfDumpCommand(Command):
+    """Команда вывода параметров эмулятора."""
+
+    def execute(self, args, shell):
+        """Выполнить команду conf-dump.
+
+        Args:
+            args: список аргументов
+            shell: экземпляр оболочки
+
+        Returns:
+            Строка с параметрами
+        """
+        lines = ["Текущие параметры эмулятора:"]
+        for key, value in shell.config.to_dict().items():
+            lines.append(f"  {key}: {value}")
+        return '\n'.join(lines)

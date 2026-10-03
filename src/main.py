@@ -2,42 +2,73 @@
 
 import tkinter as tk
 from shell import Shell
+from config import EmulatorConfig
+from logger import Logger
+from script_runner import ScriptRunner
 
 
 class ShellGUI:
     """Графический интерфейс эмулятора оболочки."""
 
-    def __init__(self):
-        """Инициализировать GUI и оболочку."""
-        self.shell = Shell()
+    def __init__(self, config=None):
+        """Инициализировать GUI и оболочку.
+
+        Args:
+            config: объект EmulatorConfig
+        """
+        self.config = config or EmulatorConfig()
+        self.shell = Shell(self.config)
+
+        if self.config.log_path:
+            self.shell.set_logger(
+                Logger(self.config.log_path)
+            )
+
         self.root = tk.Tk()
-        self.root.title(self.shell.get_window_title())
+        self.root.title(
+            self.shell.get_window_title()
+        )
+        self.root.geometry("800x600")
 
         self.text_area = tk.Text(
             self.root,
-            height=20,
-            width=80,
+            height=30,
+            width=100,
             state=tk.DISABLED,
             bg='black',
             fg='white',
-            font=('Courier', 10)
+            font=('Consolas', 11),
         )
-        self.text_area.pack()
+        self.text_area.pack(
+            fill=tk.BOTH, expand=True,
+            padx=5, pady=5
+        )
 
         self.entry = tk.Entry(
             self.root,
-            width=80,
+            width=100,
             bg='black',
             fg='white',
-            font=('Courier', 10)
+            font=('Consolas', 11),
+            insertbackground='white',
+            relief=tk.SUNKEN,
+            bd=2,
         )
-        self.entry.pack()
-        self.entry.bind('<Return>', self.on_enter)
-        self.entry.focus()
+        self.entry.pack(
+            fill=tk.X, padx=5, pady=5
+        )
+        self.entry.bind(
+            '<Return>', self.on_enter
+        )
+        self.entry.focus_set()
+
         self.show_prompt()
 
+        if self.config.script_path:
+            self._run_startup_script()
+
     def show_prompt(self):
-        """Отобразить приглашение к вводу в текстовой области."""
+        """Отобразить приглашение к вводу."""
         self.append_text(self.shell.get_prompt())
 
     def append_text(self, text):
@@ -59,7 +90,6 @@ class ShellGUI:
         """
         line = self.entry.get()
         self.entry.delete(0, tk.END)
-
         self.append_text(line + '\n')
 
         output = self.shell.execute(line)
@@ -71,7 +101,27 @@ class ShellGUI:
             return
 
         self.show_prompt()
-        self.entry.focus()
+        self.entry.focus_set()
+
+    def _run_startup_script(self):
+        """Выполнить стартовый скрипт."""
+        runner = ScriptRunner(self.shell, self)
+        path = self.config.script_path
+        self.append_text(
+            f"--- Запуск скрипта: {path} ---\n"
+        )
+        success = runner.run(path)
+        if success:
+            self.append_text(
+                "--- Скрипт завершён ---\n"
+            )
+        else:
+            self.append_text(
+                "--- Скрипт завершён "
+                "с ошибкой ---\n"
+            )
+        self.show_prompt()
+        self.entry.focus_set()
 
     def run(self):
         """Запустить главный цикл GUI."""
@@ -80,7 +130,8 @@ class ShellGUI:
 
 def main():
     """Главная точка входа."""
-    app = ShellGUI()
+    config = EmulatorConfig().parse_args()
+    app = ShellGUI(config)
     app.run()
 
 

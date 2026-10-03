@@ -28,5 +28,6 @@ build/
 .DS_Store
 Thumbs.db
 
-# Логи
+# Логи и тестовые файлы
 *.log
+tests/test.log
