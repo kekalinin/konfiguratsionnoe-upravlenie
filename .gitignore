@@ -1,0 +1,32 @@
+# Виртуальное окружение Python
+venv/
+.venv/
+env/
+*.egg-info/
+pyvenv.cfg
+
+# Служебные файлы Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Артефакты сборки
+dist/
+build/
+*.egg
+
+# Настройки IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Системные файлы
+.DS_Store
+Thumbs.db
+
+# Логи
+*.log
