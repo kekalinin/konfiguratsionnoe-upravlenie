@@ -5,6 +5,7 @@ from shell import Shell
 from config import EmulatorConfig
 from logger import Logger
 from script_runner import ScriptRunner
+from vfs import VFS
 
 
 class ShellGUI:
@@ -23,6 +24,8 @@ class ShellGUI:
             self.shell.set_logger(
                 Logger(self.config.log_path)
             )
+
+        self._init_vfs()
 
         self.root = tk.Tk()
         self.root.title(
@@ -67,6 +70,21 @@ class ShellGUI:
         if self.config.script_path:
             self._run_startup_script()
 
+    def _init_vfs(self):
+        """Инициализировать VFS."""
+        vfs = VFS()
+        if self.config.vfs_path:
+            error = vfs.load_from_json(
+                self.config.vfs_path
+            )
+            if error:
+                self._vfs_error = error
+            else:
+                self.shell.set_vfs(vfs)
+        else:
+            vfs.create_default()
+            self.shell.set_vfs(vfs)
+
     def show_prompt(self):
         """Отобразить приглашение к вводу."""
         self.append_text(self.shell.get_prompt())
@@ -105,6 +123,12 @@ class ShellGUI:
 
     def _run_startup_script(self):
         """Выполнить стартовый скрипт."""
+        if hasattr(self, '_vfs_error'):
+            self.append_text(
+                f"Ошибка VFS: {self._vfs_error}\n"
+            )
+            return
+
         runner = ScriptRunner(self.shell, self)
         path = self.config.script_path
         self.append_text(

@@ -1,0 +1,55 @@
+{
+  "type": "dir",
+  "name": "root",
+  "children": [
+    {
+      "type": "dir",
+      "name": "home",
+      "children": [
+        {
+          "type": "dir",
+          "name": "user",
+          "children": [
+            {
+              "type": "dir",
+              "name": "documents",
+              "children": [
+                {
+                  "type": "file",
+                  "name": "report.txt",
+                  "content": "0JTRg9C30LXQvdCw"
+                },
+                {
+                  "type": "file",
+                  "name": "notes.txt",
+                  "content": "WmFtZXRraQ=="
+                }
+              ]
+            },
+            {
+              "type": "file",
+              "name": "profile.txt",
+              "content": "SW15OiBLRUtBTA=="
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "dir",
+      "name": "etc",
+      "children": [
+        {
+          "type": "file",
+          "name": "passwd",
+          "content": "cm9vdDp4OjA6MA=="
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "motd.txt",
+      "content": "RG9icm8gcG9qYWxvdmF0IQ=="
+    }
+  ]
+}

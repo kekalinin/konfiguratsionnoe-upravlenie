@@ -18,7 +18,7 @@ class Command:
 
 
 class LsCommand(Command):
-    """Команда вывода содержимого каталога (заглушка)."""
+    """Команда вывода содержимого каталога."""
 
     def execute(self, args, shell):
         """Выполнить команду ls.
@@ -28,13 +28,19 @@ class LsCommand(Command):
             shell: экземпляр оболочки
 
         Returns:
-            Строка с результатом
+            Строка с содержимым директории
         """
-        return f"ls вызвана с аргументами: {args}"
+        if shell.vfs is None:
+            return "VFS не загружена"
+
+        items = shell.vfs.list_dir()
+        if not items:
+            return "(пусто)"
+        return '  '.join(items)
 
 
 class CdCommand(Command):
-    """Команда смены каталога (заглушка)."""
+    """Команда смены каталога."""
 
     def execute(self, args, shell):
         """Выполнить команду cd.
@@ -46,7 +52,18 @@ class CdCommand(Command):
         Returns:
             Строка с результатом
         """
-        return f"cd вызвана с аргументами: {args}"
+        if shell.vfs is None:
+            return "VFS не загружена"
+
+        if not args:
+            shell.vfs.current_dir = shell.vfs.root
+            return ""
+
+        path = args[0]
+        error = shell.vfs.change_dir(path)
+        if error:
+            return error
+        return ""
 
 
 class ExitCommand(Command):
@@ -82,4 +99,7 @@ class ConfDumpCommand(Command):
         lines = ["Текущие параметры эмулятора:"]
         for key, value in shell.config.to_dict().items():
             lines.append(f"  {key}: {value}")
+        if shell.vfs:
+            path = shell.vfs.get_current_path()
+            lines.append(f"  current_dir: {path}")
         return '\n'.join(lines)

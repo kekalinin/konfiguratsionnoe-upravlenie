@@ -1,0 +1,21 @@
+{
+  "type": "dir",
+  "name": "root",
+  "children": [
+    {
+      "type": "file",
+      "name": "readme.txt",
+      "content": "UHJpdmV0LCBtaXIh"
+    },
+    {
+      "type": "file",
+      "name": "data.txt",
+      "content": "c3Ryb2NhMQpzdHJvY2thMgpzdHJvY2thMw=="
+    },
+    {
+      "type": "file",
+      "name": "config.txt",
+      "content": "a2V5PXZhbHVl"
+    }
+  ]
+}
