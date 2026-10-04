@@ -66,6 +66,106 @@ class CdCommand(Command):
         return ""
 
 
+class UptimeCommand(Command):
+    """Команда вывода времени работы эмулятора."""
+
+    def execute(self, args, shell):
+        """Выполнить команду uptime.
+
+        Args:
+            args: список аргументов
+            shell: экземпляр оболочки
+
+        Returns:
+            Строка с временем работы
+        """
+        import time
+        elapsed = time.time() - shell.start_time
+        days = int(elapsed // 86400)
+        hours = int((elapsed % 86400) // 3600)
+        minutes = int((elapsed % 3600) // 60)
+        seconds = int(elapsed % 60)
+        return (
+            f"up {days} дн., "
+            f"{hours:02d}:{minutes:02d}:{seconds:02d}"
+        )
+
+
+class HeadCommand(Command):
+    """Команда вывода первых N строк файла."""
+
+    def execute(self, args, shell):
+        """Выполнить команду head.
+
+        Args:
+            args: список аргументов
+            shell: экземпляр оболочки
+
+        Returns:
+            Строка с содержимым файла
+        """
+        if shell.vfs is None:
+            return "VFS не загружена"
+        if not args:
+            return "Использование: head [-n кол-во] <файл>"
+
+        count = 10
+        filename = args[-1]
+
+        if len(args) >= 2 and args[0] == '-n':
+            try:
+                count = int(args[1])
+                filename = args[2]
+            except (ValueError, IndexError):
+                return "Ошибка: неверный формат аргументов"
+
+        node = shell.vfs.get_node(filename)
+        if node is None:
+            return f"Файл не найден: {filename}"
+        if not node.is_file():
+            return f"Не файл: {filename}"
+
+        text = node.get_content_text()
+        if text is None:
+            return f"Не удалось прочитать: {filename}"
+
+        lines = text.split('\n')
+        return '\n'.join(lines[:count])
+
+
+class TacCommand(Command):
+    """Команда вывода содержимого файла в обратном порядке."""
+
+    def execute(self, args, shell):
+        """Выполнить команду tac.
+
+        Args:
+            args: список аргументов
+            shell: экземпляр оболочки
+
+        Returns:
+            Строка с содержимым файла
+        """
+        if shell.vfs is None:
+            return "VFS не загружена"
+        if not args:
+            return "Использование: tac <файл>"
+
+        filename = args[0]
+        node = shell.vfs.get_node(filename)
+        if node is None:
+            return f"Файл не найден: {filename}"
+        if not node.is_file():
+            return f"Не файл: {filename}"
+
+        text = node.get_content_text()
+        if text is None:
+            return f"Не удалось прочитать: {filename}"
+
+        lines = text.split('\n')
+        return '\n'.join(reversed(lines))
+
+
 class ExitCommand(Command):
     """Команда выхода из оболочки."""
 

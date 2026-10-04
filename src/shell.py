@@ -1,10 +1,12 @@
 """Модуль с логикой оболочки."""
 
+import time
 import getpass
 import socket
 from parser import CommandParser
 from commands import (
-    LsCommand, CdCommand, ExitCommand,
+    LsCommand, CdCommand, UptimeCommand,
+    HeadCommand, TacCommand, ExitCommand,
     ConfDumpCommand,
 )
 from logger import NullLogger
@@ -23,6 +25,9 @@ class Shell:
         self.commands = {
             'ls': LsCommand(),
             'cd': CdCommand(),
+            'uptime': UptimeCommand(),
+            'head': HeadCommand(),
+            'tac': TacCommand(),
             'exit': ExitCommand(),
             'conf-dump': ConfDumpCommand(),
         }
@@ -32,6 +37,7 @@ class Shell:
         self.config = config
         self.logger = NullLogger()
         self.vfs = None
+        self.start_time = time.time()
 
     def set_logger(self, logger):
         """Установить логгер.
