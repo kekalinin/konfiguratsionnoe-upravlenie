@@ -203,3 +203,143 @@ class ConfDumpCommand(Command):
             path = shell.vfs.get_current_path()
             lines.append(f"  current_dir: {path}")
         return '\n'.join(lines)
+
+
+class MvCommand(Command):
+    """Команда перемещения/переименования файлов и папок."""
+
+    def execute(self, args, shell):
+        """Выполнить команду mv.
+
+        Args:
+            args: список аргументов [источник, назначение]
+            shell: экземпляр оболочки
+
+        Returns:
+            Строка с результатом
+        """
+        if shell.vfs is None:
+            return "VFS не загружена"
+        if len(args) != 2:
+            return "Использование: mv <источник> <назначение>"
+
+        src_name = args[0]
+        dst_name = args[1]
+
+        # Найти источник в текущей директории
+        src_node = shell.vfs.get_node(src_name)
+        if src_node is None:
+            return f"Не найдено: {src_name}"
+
+        # Проверить, что назначение не совпадает с источником
+        if src_name == dst_name:
+            return "Нельзя переместить в себя"
+
+        # Удалить источник из текущей директории
+        shell.vfs.current_dir.remove_child(src_name)
+
+        # Если назначение содержит путь (например, "folder/file")
+        if '/' in dst_name:
+            parts = dst_name.rsplit('/', 1)
+            dir_path = parts[0]
+            file_name = parts[1]
+
+            # Сохранить текущую директорию
+            old_dir = shell.vfs.current_dir
+
+            # Перейти в целевую папку
+            error = shell.vfs.change_dir(dir_path)
+            if error:
+                # Вернуть источник обратно
+                shell.vfs.current_dir.add_child(src_node)
+                return error
+
+            # Переименовать и добавить в новую папку
+            src_node.name = file_name
+            shell.vfs.current_dir.add_child(src_node)
+
+            # Вернуться в исходную директорию
+            shell.vfs.current_dir = old_dir
+        else:
+            # Просто переименовать в текущей директории
+            src_node.name = dst_name
+            shell.vfs.current_dir.add_child(src_node)
+
+        return ""
+
+
+class CpCommand(Command):
+    """Команда копирования файлов и папок."""
+
+    def execute(self, args, shell):
+        """Выполнить команду cp.
+
+        Args:
+            args: список аргументов [источник, назначение]
+            shell: экземпляр оболочки
+
+        Returns:
+            Строка с результатом
+        """
+        if shell.vfs is None:
+            return "VFS не загружена"
+        if len(args) != 2:
+            return "Использование: cp <источник> <назначение>"
+
+        src_name = args[0]
+        dst_name = args[1]
+
+        # Найти источник в текущей директории
+        src_node = shell.vfs.get_node(src_name)
+        if src_node is None:
+            return f"Не найдено: {src_name}"
+
+        # Скопировать узел (глубокая копия)
+        copied_node = self._deep_copy(src_node)
+
+        # Если назначение содержит путь
+        if '/' in dst_name:
+            parts = dst_name.rsplit('/', 1)
+            dir_path = parts[0]
+            file_name = parts[1]
+
+            # Сохранить текущую директорию
+            old_dir = shell.vfs.current_dir
+
+            # Перейти в целевую папку
+            error = shell.vfs.change_dir(dir_path)
+            if error:
+                return error
+
+            # Переименовать и добавить в новую папку
+            copied_node.name = file_name
+            shell.vfs.current_dir.add_child(copied_node)
+
+            # Вернуться в исходную директорию
+            shell.vfs.current_dir = old_dir
+        else:
+            # Просто скопировать в текущей директории
+            copied_node.name = dst_name
+            shell.vfs.current_dir.add_child(copied_node)
+
+        return ""
+
+    def _deep_copy(self, node):
+        """Создать глубокую копию узла.
+
+        Args:
+            node: исходный узел
+
+        Returns:
+            Копия узла
+        """
+        from vfs import VFSNode
+
+        copied = VFSNode(node.name, node.node_type)
+        if node.is_file():
+            copied.content = node.content
+        else:
+            for child in node.children:
+                child_copy = self._deep_copy(child)
+                copied.add_child(child_copy)
+        return copied

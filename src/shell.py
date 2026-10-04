@@ -6,8 +6,8 @@ import socket
 from parser import CommandParser
 from commands import (
     LsCommand, CdCommand, UptimeCommand,
-    HeadCommand, TacCommand, ExitCommand,
-    ConfDumpCommand,
+    HeadCommand, TacCommand, MvCommand, CpCommand,
+    ExitCommand, ConfDumpCommand,
 )
 from logger import NullLogger
 
@@ -28,6 +28,8 @@ class Shell:
             'uptime': UptimeCommand(),
             'head': HeadCommand(),
             'tac': TacCommand(),
+            'mv': MvCommand(),
+            'cp': CpCommand(),
             'exit': ExitCommand(),
             'conf-dump': ConfDumpCommand(),
         }
